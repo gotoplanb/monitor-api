@@ -1,3 +1,7 @@
+"""
+Monitor.
+"""
+
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Table
 from sqlalchemy.orm import relationship
 from datetime import datetime

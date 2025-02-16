@@ -1,3 +1,7 @@
+"""
+Dependencies.
+"""
+
 from typing import Generator
 from app.database import SessionLocal
 
