@@ -28,6 +28,12 @@ The simplest way to use this is to have some system send an outbound webhook to 
 
 1. `uvicorn app.main:app --reload`
 
+# Testing
+
+1. `black .`
+1. `pylint $(git ls-files '*.py')`
+1. TODO Unit tests
+
 # Seed the local database
 
 ## Create a monitor
