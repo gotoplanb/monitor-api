@@ -7,9 +7,8 @@ from app.database import init_db
 init_db()
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
 # Include routers
-app.include_router(monitor.router, prefix=settings.API_V1_STR) 
+app.include_router(monitor.router, prefix=settings.API_V1_STR)

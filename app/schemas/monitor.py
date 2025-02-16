@@ -3,12 +3,15 @@ from typing import List
 from datetime import datetime
 from app.models.monitor import MonitorState
 
+
 class MonitorCreate(BaseModel):
     name: str
     tags: List[str] = []
 
+
 class MonitorStatusUpdate(BaseModel):
     state: MonitorState
+
 
 class MonitorStatusResponse(BaseModel):
     name: str
@@ -17,4 +20,4 @@ class MonitorStatusResponse(BaseModel):
     tags: List[str]
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

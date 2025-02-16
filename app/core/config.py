@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 
+
 class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./test.db"
     API_V1_STR: str = "/api/v1"
@@ -8,4 +9,5 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
 
-settings = Settings() 
+
+settings = Settings()
