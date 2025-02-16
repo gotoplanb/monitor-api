@@ -1,10 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 from typing import List
 from app.api.dependencies import get_db
 from app.models.monitor import Monitor, MonitorStatus, Tag, monitor_tags, MonitorState
 from app.schemas.monitor import MonitorCreate, MonitorStatusUpdate, MonitorStatusResponse
+from PIL import Image, ImageDraw, ImageFont
+from io import BytesIO
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
 
@@ -125,4 +128,53 @@ def get_monitors_by_tags(tags: List[str] = Query(...), db: Session = Depends(get
                 )
             )
 
-    return latest_states 
+    return latest_states
+
+@router.get("/{monitor_id}/state/badge.png")
+def get_monitor_state_badge(monitor_id: int, db: Session = Depends(get_db)):
+    """Get a monitor's state as a PNG badge."""
+    monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+
+    latest_status = (
+        db.query(MonitorStatus)
+        .filter(MonitorStatus.monitor_id == monitor_id)
+        .order_by(desc(MonitorStatus.timestamp))
+        .first()
+    )
+    
+    if not latest_status:
+        raise HTTPException(status_code=404, detail="No state found for this monitor")
+
+    # Define colors for different states
+    state_colors = {
+        MonitorState.NORMAL: "#4CAF50",      # Green
+        MonitorState.WARNING: "#FFC107",     # Yellow
+        MonitorState.CRITICAL: "#F44336",    # Red
+        MonitorState.MISSING_DATA: "#9E9E9E" # Gray
+    }
+
+    # Create image
+    badge_height = 20
+    name_width = 100
+    state_width = 80
+    total_width = name_width + state_width
+    
+    img = Image.new('RGB', (total_width, badge_height), color='#555555')
+    draw = ImageDraw.Draw(img)
+
+    # Draw state background
+    state_color = state_colors.get(latest_status.state, "#9E9E9E")
+    draw.rectangle([(name_width, 0), (total_width, badge_height)], fill=state_color)
+
+    # Draw text
+    draw.text((5, 4), monitor.name[:12], fill='white')
+    draw.text((name_width + 5, 4), latest_status.state.value, fill='white')
+
+    # Convert image to bytes
+    img_byte_arr = BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    img_byte_arr.seek(0)
+
+    return Response(content=img_byte_arr.getvalue(), media_type="image/png") 
