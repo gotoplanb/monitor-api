@@ -12,6 +12,8 @@
 
 Monitors is a simple service that lets you get and set the status of arbitrary things. Not a system of record but a tool to reduce notification fatigue.
 
+The simplest way to use this is to have some system send an outbound webhook to Monitors to update monitor status then dipslay the status as a PNG badge somewhere.
+
 # Dependencies
 
 1. pipx
