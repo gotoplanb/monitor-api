@@ -1,4 +1,16 @@
-# monitors
+```
+##     ##  #######  ##    ## #### ########  #######  ########   ######  
+###   ### ##     ## ###   ##  ##     ##    ##     ## ##     ## ##    ## 
+#### #### ##     ## ####  ##  ##     ##    ##     ## ##     ## ##       
+## ### ## ##     ## ## ## ##  ##     ##    ##     ## ########   ######  
+##     ## ##     ## ##  ####  ##     ##    ##     ## ##   ##         ## 
+##     ## ##     ## ##   ###  ##     ##    ##     ## ##    ##  ##    ## 
+##     ##  #######  ##    ## ####    ##     #######  ##     ##  ######  
+```
+
+"What is the status of ____ ?"
+
+Monitors is a simple service that lets you get and set the status of arbitrary things. Not a system of record but a tool to reduce notification fatigue.
 
 # Dependencies
 
