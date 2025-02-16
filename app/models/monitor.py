@@ -14,8 +14,8 @@ class MonitorState(enum.Enum):
 monitor_tags = Table(
     "monitor_tags",
     Base.metadata,
-    Column("monitor_id", Integer, ForeignKey("monitors.id"), primary_key=True),
-    Column("tag", String, primary_key=True),
+    Column("monitor_id", Integer, ForeignKey("monitors.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", Integer, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True)
 )
 
 class Monitor(Base):
@@ -23,14 +23,14 @@ class Monitor(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
-    states = relationship("MonitorStatus", back_populates="monitor")
+    states = relationship("MonitorStatus", back_populates="monitor", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary=monitor_tags, back_populates="monitors")
 
 class MonitorStatus(Base):
     __tablename__ = "monitor_statuses"
 
     id = Column(Integer, primary_key=True, index=True)
-    monitor_id = Column(Integer, ForeignKey("monitors.id"), nullable=False)
+    monitor_id = Column(Integer, ForeignKey("monitors.id", ondelete="CASCADE"), nullable=False)
     state = Column(Enum(MonitorState), nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 

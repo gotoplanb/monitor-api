@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from app.core.config import settings
 from app.api.endpoints import monitor
-from app.database import engine
-from app.models.base import Base
+from app.database import init_db
 
 # Initialize database
-Base.metadata.create_all(bind=engine)
+init_db()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
