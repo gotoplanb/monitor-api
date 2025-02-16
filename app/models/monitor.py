@@ -1,15 +1,20 @@
 """
-Monitor.
+Database models for the monitoring system.
+
+This module defines SQLAlchemy ORM models for monitors, their states, and tags.
 """
+
+import enum
+from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum, Table
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import enum
+
 from .base import Base
 
 
 class MonitorState(enum.Enum):
+    """Monitor state enumeration."""
     NORMAL = "Normal"
     WARNING = "Warning"
     CRITICAL = "Critical"
@@ -33,6 +38,15 @@ monitor_tags = Table(
 
 
 class Monitor(Base):
+    """
+    Monitor model representing a system or service being monitored.
+
+    Attributes:
+        id: Unique identifier
+        name: Monitor name
+        states: Relationship to monitor states
+        tags: Relationship to monitor tags
+    """
     __tablename__ = "monitors"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -44,6 +58,16 @@ class Monitor(Base):
 
 
 class MonitorStatus(Base):
+    """
+    Monitor status model representing the state of a monitor at a point in time.
+
+    Attributes:
+        id: Unique identifier
+        monitor_id: Reference to the monitor
+        state: Current state of the monitor
+        timestamp: When this state was recorded
+        monitor: Relationship to the parent monitor
+    """
     __tablename__ = "monitor_statuses"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -57,6 +81,14 @@ class MonitorStatus(Base):
 
 
 class Tag(Base):
+    """
+    Tag model for categorizing monitors.
+
+    Attributes:
+        id: Unique identifier
+        name: Tag name
+        monitors: Relationship to monitors using this tag
+    """
     __tablename__ = "tags"
 
     id = Column(Integer, primary_key=True, index=True)

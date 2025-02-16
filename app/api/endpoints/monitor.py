@@ -1,27 +1,40 @@
 """
-Monitor.
+Monitor API endpoints module.
+
+This module provides FastAPI route handlers for the monitoring system.
 """
+
+from io import BytesIO
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
-from sqlalchemy.orm import Session
+from PIL import Image, ImageDraw
 from sqlalchemy import desc, func
-from typing import List
+from sqlalchemy.orm import Session
+
 from app.api.dependencies import get_db
 from app.models.monitor import Monitor, MonitorStatus, Tag, monitor_tags, MonitorState
-from app.schemas.monitor import (
-    MonitorCreate,
-    MonitorStatusUpdate,
-    MonitorStatusResponse,
-)
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
+from app.schemas.monitor import MonitorCreate, MonitorStatusUpdate, MonitorStatusResponse
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
 
 
 @router.post("/", response_model=MonitorCreate)
 def create_monitor(monitor: MonitorCreate, db: Session = Depends(get_db)):
+    """
+    Create a new monitor with optional tags.
+
+    Args:
+        monitor: Monitor creation data
+        db: Database session
+
+    Returns:
+        MonitorCreate: Created monitor data
+
+    Raises:
+        HTTPException: If monitor already exists
+    """
     existing_monitor = db.query(Monitor).filter(Monitor.name == monitor.name).first()
     if existing_monitor:
         raise HTTPException(status_code=400, detail="Monitor already exists")
@@ -46,6 +59,20 @@ def create_monitor(monitor: MonitorCreate, db: Session = Depends(get_db)):
 def set_monitor_state(
     monitor_id: int, status: MonitorStatusUpdate, db: Session = Depends(get_db)
 ):
+    """
+    Set the state of a specific monitor.
+
+    Args:
+        monitor_id: ID of the monitor to update
+        status: New status data
+        db: Database session
+
+    Returns:
+        dict: Success message
+
+    Raises:
+        HTTPException: If monitor not found
+    """
     monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
     if not monitor:
         raise HTTPException(status_code=404, detail="Monitor not found")
@@ -58,6 +85,19 @@ def set_monitor_state(
 
 @router.get("/{monitor_id}/state/", response_model=MonitorStatusResponse)
 def get_monitor_state(monitor_id: int, db: Session = Depends(get_db)):
+    """
+    Get the current state of a specific monitor.
+
+    Args:
+        monitor_id: ID of the monitor to query
+        db: Database session
+
+    Returns:
+        MonitorStatusResponse: Monitor status data
+
+    Raises:
+        HTTPException: If monitor or state not found
+    """
     monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
     if not monitor:
         raise HTTPException(status_code=404, detail="Monitor not found")
@@ -82,6 +122,15 @@ def get_monitor_state(monitor_id: int, db: Session = Depends(get_db)):
 
 @router.get("/statuses/", response_model=List[MonitorStatusResponse])
 def get_all_monitor_states(db: Session = Depends(get_db)):
+    """
+    Get the current state of all monitors.
+
+    Args:
+        db: Database session
+
+    Returns:
+        List[MonitorStatusResponse]: List of monitor status data
+    """
     latest_states = (
         db.query(Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp)
         .join(MonitorStatus)
