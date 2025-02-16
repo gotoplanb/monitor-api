@@ -1,14 +1,17 @@
 # monitors
 
 # Dependencies
+
 1. pipx
 
 # Setup
+
 1. `pipx run virtualenv monitors`
 1. `source ./monitors/bin/activate`
 1. `pip install -r requirements.txt`
 
-# Run
+# Running
+
 1. `uvicorn app.main:app --reload`
 
 # Seed the local database
@@ -43,3 +46,12 @@ curl -X 'GET' \
   'http://localhost:8000/api/v1/monitors/statuses/' \
   -H 'accept: application/json'
 ```
+
+# Make it public
+
+The easiest way to start is to run this locally and use [Ngrok](https://ngrok.com/docs/getting-started/).
+
+1. Create a Ngrok account at https://ngrok.com/docs/getting-started/
+1. Create a domain at https://dashboard.ngrok.com/domains
+1. Confirm your local server is running
+1. Run `ngrok http --url={{your_domain}} 8000`
