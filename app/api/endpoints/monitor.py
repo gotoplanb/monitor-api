@@ -251,3 +251,46 @@ def get_monitor_state_badge(monitor_id: int, db: Session = Depends(get_db)):
     img_byte_arr.seek(0)
 
     return Response(content=img_byte_arr.getvalue(), media_type="image/png")
+
+
+@router.get("/{monitor_id}/history/", response_model=List[MonitorStatusResponse])
+def get_monitor_history(
+    monitor_id: int,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Get paginated history of monitor states.
+
+    Args:
+        monitor_id: ID of the monitor
+        skip: Number of records to skip
+        limit: Maximum number of records to return
+        db: Database session
+
+    Returns:
+        List[MonitorStatusResponse]: List of historical status records
+    """
+    monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+
+    statuses = (
+        db.query(MonitorStatus)
+        .filter(MonitorStatus.monitor_id == monitor_id)
+        .order_by(desc(MonitorStatus.timestamp))
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    return [
+        MonitorStatusResponse(
+            name=monitor.name,
+            state=status.state,
+            timestamp=status.timestamp,
+            tags=[tag.name for tag in monitor.tags],
+        )
+        for status in statuses
+    ]
