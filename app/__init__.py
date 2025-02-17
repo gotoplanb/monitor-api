@@ -1,3 +1,3 @@
 """
 Monitor API application package.
-""" 
+"""
