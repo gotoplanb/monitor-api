@@ -12,10 +12,7 @@ from app.models.base import Base
 
 
 # Create engine with check_same_thread=False for SQLite
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -24,7 +21,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 def init_db() -> None:
     """
     Initialize the database by creating all tables.
-    
+
     This function should be called when the application starts.
     """
     Base.metadata.create_all(bind=engine)

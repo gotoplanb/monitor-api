@@ -15,7 +15,11 @@ from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_db
 from app.models.monitor import Monitor, MonitorStatus, Tag, monitor_tags, MonitorState
-from app.schemas.monitor import MonitorCreate, MonitorStatusUpdate, MonitorStatusResponse
+from app.schemas.monitor import (
+    MonitorCreate,
+    MonitorStatusUpdate,
+    MonitorStatusResponse,
+)
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
 
@@ -258,7 +262,7 @@ def get_monitor_history(
     monitor_id: int,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=10, ge=1, le=100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get paginated history of monitor states.

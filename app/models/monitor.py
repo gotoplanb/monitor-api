@@ -15,6 +15,7 @@ from .base import Base
 
 class MonitorState(enum.Enum):
     """Monitor state enumeration."""
+
     NORMAL = "Normal"
     WARNING = "Warning"
     CRITICAL = "Critical"
@@ -47,6 +48,7 @@ class Monitor(Base):
         states: Relationship to monitor states
         tags: Relationship to monitor tags
     """
+
     __tablename__ = "monitors"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -68,6 +70,7 @@ class MonitorStatus(Base):
         timestamp: When this state was recorded
         monitor: Relationship to the parent monitor
     """
+
     __tablename__ = "monitor_statuses"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -89,6 +92,7 @@ class Tag(Base):
         name: Tag name
         monitors: Relationship to monitors using this tag
     """
+
     __tablename__ = "tags"
 
     id = Column(Integer, primary_key=True, index=True)
