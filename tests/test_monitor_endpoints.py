@@ -134,8 +134,10 @@ def test_get_monitors_by_tags(client: TestClient):
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    names = {m["name"] for m in data}
-    assert names == {"monitor1", "monitor2"}
+    monitor_names = {m["name"] for m in data}
+    assert monitor_names == {"monitor1", "monitor2"}
+    for monitor in data:
+        assert "prod" in monitor["tags"]
 
     # Test filtering by multiple tags
     response = client.get("/api/v1/monitors/statuses/by-tags/?tags=prod&tags=web")
@@ -143,3 +145,4 @@ def test_get_monitors_by_tags(client: TestClient):
     data = response.json()
     assert len(data) == 1
     assert data[0]["name"] == "monitor1"
+    assert all(tag in data[0]["tags"] for tag in ["prod", "web"])
