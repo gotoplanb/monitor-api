@@ -11,7 +11,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from PIL import Image, ImageDraw
-from sqlalchemy import desc, func
+from sqlalchemy import desc, func, and_
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -140,12 +140,29 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
         List[MonitorStatusResponse]: List of monitor status data
     """
     try:
+        # Subquery to get the latest status for each monitor
+        latest_status = (
+            db.query(
+                MonitorStatus.monitor_id,
+                func.max(MonitorStatus.timestamp).label("max_timestamp"),
+            )
+            .group_by(MonitorStatus.monitor_id)
+            .subquery()
+        )
+
+        # Main query joining with the subquery
         latest_states = (
             db.query(
                 Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp
             )
             .join(MonitorStatus)
-            .group_by(Monitor.id)
+            .join(
+                latest_status,
+                and_(
+                    Monitor.id == latest_status.c.monitor_id,
+                    MonitorStatus.timestamp == latest_status.c.max_timestamp,
+                ),
+            )
             .order_by(desc(MonitorStatus.timestamp))
             .all()
         )
@@ -155,18 +172,14 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
 
         result = []
         for monitor_id, name, state, timestamp in latest_states:
-            try:
-                monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
-                tags = [tag.name for tag in monitor.tags] if monitor else []
+            monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+            tags = [tag.name for tag in monitor.tags] if monitor else []
 
-                result.append(
-                    MonitorStatusResponse(
-                        name=name, state=state, timestamp=timestamp, tags=tags
-                    )
+            result.append(
+                MonitorStatusResponse(
+                    name=name, state=state, timestamp=timestamp, tags=tags
                 )
-            except SQLAlchemyError as e:
-                logger.error("Error processing monitor %s: %s", monitor_id, str(e))
-                continue
+            )
 
         return result
 
