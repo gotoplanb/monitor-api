@@ -5,6 +5,7 @@ This module manages application-wide configuration settings using Pydantic.
 """
 
 import os
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -28,10 +29,7 @@ class Settings(BaseSettings):
         """Check if database is PostgreSQL."""
         return self.DATABASE_URL.startswith("postgres")
 
-    class Config:
-        """Pydantic configuration class."""
-
-        case_sensitive = True
+    model_config = ConfigDict(case_sensitive=True, env_file=".env")
 
 
 settings = Settings()

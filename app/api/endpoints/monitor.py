@@ -178,47 +178,53 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
 
 
 @router.get("/statuses/by-tags/", response_model=List[MonitorStatusResponse])
-def get_monitors_by_tags(tags: List[str] = Query(...), db: Session = Depends(get_db)):
-    """Retrieve the latest state for all monitors that have all specified tags."""
-    if not tags:
-        raise HTTPException(status_code=400, detail="At least one tag must be provided")
+def get_monitors_by_tags(tags: List[str] = Query(None), db: Session = Depends(get_db)):
+    """
+    Get monitors filtered by tags.
 
-    # Find monitors that contain all the requested tags
-    subquery = (
+    Args:
+        tags: List of tags to filter by (monitors must have all specified tags)
+        db: Database session
+
+    Returns:
+        List[MonitorStatusResponse]: List of monitor statuses
+    """
+    if not tags:
+        return []
+
+    # Subquery to find monitors that have all specified tags
+    monitors_with_all_tags = (
         db.query(Monitor.id)
         .join(monitor_tags)
-        .filter(monitor_tags.c.tag.in_(tags))
+        .join(Tag)
+        .filter(Tag.name.in_(tags))
         .group_by(Monitor.id)
-        .having(func.count(monitor_tags.c.tag) == len(tags))
-        .subquery()
+        .having(func.count(Tag.id) == len(tags))
     )
 
-    monitors = db.query(Monitor).filter(Monitor.id.in_(subquery)).all()
+    # Main query to get monitor details
+    query = (
+        db.query(Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp)
+        .join(MonitorStatus)
+        .filter(Monitor.id.in_(monitors_with_all_tags))
+        .group_by(Monitor.id)
+        .order_by(desc(MonitorStatus.timestamp))
+    )
 
-    if not monitors:
-        raise HTTPException(
-            status_code=404, detail="No monitors found with all specified tags"
-        )
+    monitors = query.all()
+    result = []
 
-    latest_states = []
-    for monitor in monitors:
-        latest_status = (
-            db.query(MonitorStatus)
-            .filter(MonitorStatus.monitor_id == monitor.id)
-            .order_by(desc(MonitorStatus.timestamp))
-            .first()
-        )
-        if latest_status:
-            latest_states.append(
-                MonitorStatusResponse(
-                    name=monitor.name,
-                    state=latest_status.state,
-                    timestamp=latest_status.timestamp,
-                    tags=[tag.name for tag in monitor.tags],
-                )
+    for monitor_id, name, state, timestamp in monitors:
+        monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+        tags = [tag.name for tag in monitor.tags] if monitor else []
+
+        result.append(
+            MonitorStatusResponse(
+                name=name, state=state, timestamp=timestamp, tags=tags
             )
+        )
 
-    return latest_states
+    return result
 
 
 @router.get("/{monitor_id}/state/badge.png")
