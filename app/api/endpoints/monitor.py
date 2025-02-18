@@ -12,6 +12,7 @@ from fastapi.responses import Response
 from PIL import Image, ImageDraw
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
+import logging
 
 from app.api.dependencies import get_db
 from app.models.monitor import Monitor, MonitorStatus, Tag, monitor_tags, MonitorState
@@ -22,6 +23,8 @@ from app.schemas.monitor import (
 )
 
 router = APIRouter(prefix="/monitors", tags=["monitors"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/", response_model=MonitorCreate)
@@ -135,32 +138,40 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
     Returns:
         List[MonitorStatusResponse]: List of monitor status data
     """
-    latest_states = (
-        db.query(Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp)
-        .join(MonitorStatus)
-        .group_by(Monitor.id)
-        .order_by(desc(MonitorStatus.timestamp))
-        .all()
-    )
-
-    if not latest_states:
-        return []
-
-    return [
-        MonitorStatusResponse(
-            name=name,
-            state=state,
-            timestamp=timestamp,
-            tags=[
-                tag.name
-                for tag in db.query(Monitor)
-                .filter(Monitor.id == monitor_id)
-                .first()
-                .tags
-            ],
+    try:
+        latest_states = (
+            db.query(
+                Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp
+            )
+            .join(MonitorStatus)
+            .group_by(Monitor.id)
+            .order_by(desc(MonitorStatus.timestamp))
+            .all()
         )
-        for monitor_id, name, state, timestamp in latest_states
-    ]
+
+        if not latest_states:
+            return []
+
+        result = []
+        for monitor_id, name, state, timestamp in latest_states:
+            try:
+                monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+                tags = [tag.name for tag in monitor.tags] if monitor else []
+
+                result.append(
+                    MonitorStatusResponse(
+                        name=name, state=state, timestamp=timestamp, tags=tags
+                    )
+                )
+            except Exception as e:
+                logger.error(f"Error processing monitor {monitor_id}: {e}")
+                continue
+
+        return result
+
+    except Exception as e:
+        logger.error(f"Error retrieving monitor states: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
 @router.get("/statuses/by-tags/", response_model=List[MonitorStatusResponse])
