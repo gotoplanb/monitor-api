@@ -11,7 +11,6 @@ from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.database import Base
 from app.api.dependencies import get_db
-from app.models.monitor import MonitorState
 
 # Create in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -24,8 +23,8 @@ engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@pytest.fixture
-def db_session():
+@pytest.fixture(name="db_session")
+def fixture_db_session():
     """Create a fresh database session for each test."""
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
@@ -36,8 +35,8 @@ def db_session():
         Base.metadata.drop_all(bind=engine)
 
 
-@pytest.fixture
-def client(db_session):
+@pytest.fixture(name="client")
+def fixture_client(db_session):
     """Create a test client with a test database session."""
 
     def override_get_db():
@@ -52,8 +51,8 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def sample_monitor(client):
+@pytest.fixture(name="sample_monitor")
+def fixture_sample_monitor(client):
     """Create a sample monitor for testing."""
     response = client.post(
         "/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]}

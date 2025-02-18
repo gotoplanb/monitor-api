@@ -2,6 +2,7 @@
 Setup configuration for the monitors package.
 """
 
+# pylint: disable=import-error
 from setuptools import setup, find_packages
 
 setup(
@@ -20,4 +21,4 @@ setup(
         "pytest>=7.0.0",
         "httpx>=0.24.0",
     ],
-) 
+)

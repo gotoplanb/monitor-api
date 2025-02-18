@@ -2,12 +2,10 @@
 Tests for monitor endpoints.
 """
 
-import pytest
-from datetime import datetime
-from app.models.monitor import MonitorState
+from fastapi.testclient import TestClient
 
 
-def test_create_monitor(client):
+def test_create_monitor(client: TestClient):
     """Test creating a new monitor."""
     response = client.post(
         "/api/v1/monitors/",
@@ -20,8 +18,12 @@ def test_create_monitor(client):
     assert "production" in data["tags"]
 
 
-def test_create_duplicate_monitor(client, sample_monitor):
+def test_create_duplicate_monitor(client: TestClient):
     """Test creating a monitor with a duplicate name."""
+    # First create a monitor
+    client.post("/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]})
+
+    # Try to create duplicate
     response = client.post(
         "/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]}
     )
@@ -29,23 +31,29 @@ def test_create_duplicate_monitor(client, sample_monitor):
     assert "already exists" in response.json()["detail"]
 
 
-def test_set_monitor_state(client, sample_monitor):
+def test_set_monitor_state(client: TestClient):
     """Test setting a monitor's state."""
+    # First create a monitor
+    client.post("/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]})
+
     response = client.post("/api/v1/monitors/1/state/", json={"state": "Normal"})
     assert response.status_code == 200
     assert response.json()["message"] == "State updated successfully"
 
 
-def test_set_monitor_state_invalid_monitor(client):
+def test_set_monitor_state_invalid_monitor(client: TestClient):
     """Test setting state for non-existent monitor."""
     response = client.post("/api/v1/monitors/999/state/", json={"state": "Normal"})
     assert response.status_code == 404
     assert "Monitor not found" in response.json()["detail"]
 
 
-def test_get_monitor_state(client, sample_monitor):
+def test_get_monitor_state(client: TestClient):
     """Test getting a monitor's state."""
-    # First set a state
+    # First create a monitor
+    client.post("/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]})
+
+    # Set a state
     client.post("/api/v1/monitors/1/state/", json={"state": "Normal"})
 
     # Then get the state
@@ -58,22 +66,25 @@ def test_get_monitor_state(client, sample_monitor):
     assert "tags" in data
 
 
-def test_get_monitor_state_invalid_monitor(client):
+def test_get_monitor_state_invalid_monitor(client: TestClient):
     """Test getting state for non-existent monitor."""
     response = client.get("/api/v1/monitors/999/state/")
     assert response.status_code == 404
     assert "Monitor not found" in response.json()["detail"]
 
 
-def test_get_all_monitor_states_empty(client):
+def test_get_all_monitor_states_empty(client: TestClient):
     """Test getting all monitor states when none exist."""
     response = client.get("/api/v1/monitors/statuses/")
     assert response.status_code == 200
     assert response.json() == []
 
 
-def test_get_all_monitor_states(client, sample_monitor):
+def test_get_all_monitor_states(client: TestClient):
     """Test getting all monitor states."""
+    # Create a monitor
+    client.post("/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]})
+
     # Set states for the monitor
     client.post("/api/v1/monitors/1/state/", json={"state": "Normal"})
 
@@ -87,8 +98,11 @@ def test_get_all_monitor_states(client, sample_monitor):
     assert "tags" in data[0]
 
 
-def test_get_monitor_state_badge(client, sample_monitor):
+def test_get_monitor_state_badge(client: TestClient):
     """Test getting a monitor's state badge."""
+    # Create a monitor
+    client.post("/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]})
+
     # Set a state first
     client.post("/api/v1/monitors/1/state/", json={"state": "Normal"})
 
@@ -97,14 +111,14 @@ def test_get_monitor_state_badge(client, sample_monitor):
     assert response.headers["content-type"] == "image/png"
 
 
-def test_get_monitor_state_badge_invalid_monitor(client):
+def test_get_monitor_state_badge_invalid_monitor(client: TestClient):
     """Test getting state badge for non-existent monitor."""
     response = client.get("/api/v1/monitors/999/state/badge.png")
     assert response.status_code == 404
     assert "Monitor not found" in response.json()["detail"]
 
 
-def test_get_monitors_by_tags(client):
+def test_get_monitors_by_tags(client: TestClient):
     """Test getting monitors filtered by tags."""
     # Create monitors with different tags
     client.post("/api/v1/monitors/", json={"name": "monitor1", "tags": ["prod", "web"]})
