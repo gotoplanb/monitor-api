@@ -5,6 +5,7 @@ Main application module.
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.api.endpoints import monitor
@@ -18,8 +19,9 @@ logger = logging.getLogger(__name__)
 try:
     init_db()
     logger.info("Database initialized successfully")
-except Exception as e:
-    logger.error(f"Database initialization failed: {e}")
+except SQLAlchemyError as e:
+    logger.error("Database initialization failed: %s", str(e))
+    raise
 
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"

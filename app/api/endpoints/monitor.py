@@ -7,12 +7,13 @@ This module provides FastAPI route handlers for the monitoring system.
 from io import BytesIO
 from typing import List
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from PIL import Image, ImageDraw
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
-import logging
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.dependencies import get_db
 from app.models.monitor import Monitor, MonitorStatus, Tag, monitor_tags, MonitorState
@@ -163,15 +164,17 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
                         name=name, state=state, timestamp=timestamp, tags=tags
                     )
                 )
-            except Exception as e:
-                logger.error(f"Error processing monitor {monitor_id}: {e}")
+            except SQLAlchemyError as e:
+                logger.error("Error processing monitor %s: %s", monitor_id, str(e))
                 continue
 
         return result
 
-    except Exception as e:
-        logger.error(f"Error retrieving monitor states: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+    except SQLAlchemyError as e:
+        logger.error("Error retrieving monitor states: %s", str(e))
+        raise HTTPException(
+            status_code=500, detail=f"Internal server error: {str(e)}"
+        ) from e
 
 
 @router.get("/statuses/by-tags/", response_model=List[MonitorStatusResponse])

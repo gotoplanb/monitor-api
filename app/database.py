@@ -7,6 +7,7 @@ This module handles database connection and session management.
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
 from app.models.base import Base
@@ -34,8 +35,8 @@ try:
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     logger.info("Database connection established successfully")
 
-except Exception as e:
-    logger.error(f"Database connection failed: {e}")
+except SQLAlchemyError as e:
+    logger.error("Database connection failed: %s", str(e))
     raise
 
 
@@ -48,8 +49,8 @@ def init_db() -> None:
     try:
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
-    except Exception as e:
-        logger.error(f"Failed to create database tables: {e}")
+    except SQLAlchemyError as e:
+        logger.error("Failed to create database tables: %s", str(e))
         raise
 
 
