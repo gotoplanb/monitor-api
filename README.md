@@ -32,7 +32,8 @@ The simplest way to use this is to have some system send an outbound webhook to 
 
 1. `black .`
 1. `pylint $(git ls-files '*.py')`
-1. TODO Unit tests
+1. `pip install -e .`
+1. `pytest tests/ -v`
 
 # Seed the local database
 
