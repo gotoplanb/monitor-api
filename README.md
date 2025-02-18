@@ -23,17 +23,25 @@ The simplest way to use this is to have some system send an outbound webhook to 
 1. `pipx run virtualenv monitors`
 1. `source ./monitors/bin/activate`
 1. `pip install -r requirements.txt`
-
-# Running
-
-1. `uvicorn app.main:app --reload`
-
-# Testing
-
-1. `black .`
-1. `pylint $(git ls-files '*.py')`
 1. `pip install -e .`
-1. `pytest tests/ -v`
+
+or run `make setup`
+
+# Format
+
+1. `black .` or `make format`
+
+# Lint
+
+1. `pylint $(git ls-files '*.py')` or `make lint`
+
+# Test
+
+1. `pytest tests/ -v` or `make test`
+
+# Run
+
+1. `uvicorn app.main:app --reload` or `make run`
 
 # Seed the local database
 
