@@ -1,0 +1,18 @@
+{
+  "name": "Monitors API",
+  "description": "A FastAPI monitoring system with PostgreSQL backend",
+  "repository": "https://github.com/gotoplanb/monitors",
+  "keywords": ["python", "fastapi", "monitoring", "postgresql"],
+  "addons": ["heroku-postgresql:hobby-dev"],
+  "env": {
+    "PYTHON_VERSION": {
+      "description": "Python version to use",
+      "value": "3.13.2"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+} 

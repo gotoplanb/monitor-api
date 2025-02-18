@@ -11,8 +11,19 @@ from app.core.config import settings
 from app.models.base import Base
 
 
-# Create engine with check_same_thread=False for SQLite
-engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
+# Configure engine based on database type
+if settings.is_postgres:
+    # For PostgreSQL on Heroku
+    engine = create_engine(
+        settings.DATABASE_URL.replace("postgres://", "postgresql://"),
+        pool_size=5,
+        max_overflow=10,
+    )
+else:
+    # For SQLite locally
+    engine = create_engine(
+        settings.DATABASE_URL, connect_args={"check_same_thread": False}
+    )
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
