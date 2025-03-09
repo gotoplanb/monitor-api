@@ -4,7 +4,6 @@ Configuration settings module.
 This module manages application-wide configuration settings using Pydantic.
 """
 
-import os
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
