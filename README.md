@@ -17,6 +17,7 @@ The simplest way to use this is to have some system send an outbound webhook to 
 # Dependencies
 
 1. pipx
+1. PostgreSQL database
 
 # Setup
 
@@ -24,6 +25,7 @@ The simplest way to use this is to have some system send an outbound webhook to 
 1. `source ./monitors/bin/activate`
 1. `pip install -r requirements.txt`
 1. `pip install -e .`
+1. Create a PostgreSQL database at Supabase or similar
 
 or run `make setup`
 
@@ -41,6 +43,7 @@ or run `make setup`
 
 # Run
 
+1. Set `DATABASE_URL` through a `.env` file or other environment export
 1. `uvicorn app.main:app --reload` or `make run`
 
 # Seed the local database
@@ -84,5 +87,3 @@ The easiest way to start is to run this locally and use [Ngrok](https://ngrok.co
 1. Create a domain at https://dashboard.ngrok.com/domains
 1. Confirm your local server is running
 1. Run `ngrok http --url={{your_domain}} 8000`
-
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/gotoplanb/monitors)
