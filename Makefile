@@ -9,21 +9,20 @@ PIP = $(VENV)/bin/pip
 PORT = 8000
 APP = app.main:app
 
-setup: $(VENV)/bin/activate
-
-$(VENV)/bin/activate: requirements.txt
-	python -m venv $(VENV)
-	$(PIP) install -r requirements.txt
+setup:
+	pipx run virtualenv $(VENV)
+	. ./$(VENV)/bin/activate && \
+	$(PIP) install -r requirements.txt && \
 	$(PIP) install -e .
 
-test: setup
-	$(PYTHON) -m pytest tests/ -v
+format: setup
+	$(PYTHON) -m black .
 
 lint: setup
 	$(PYTHON) -m pylint $$(git ls-files '*.py')
 
-format: setup
-	$(PYTHON) -m black .
+test: setup
+	$(PYTHON) -m pytest tests/ -v
 
 run: setup
 	$(PYTHON) -m uvicorn $(APP) --reload --port $(PORT)
