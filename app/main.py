@@ -6,6 +6,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
+from mangum import Mangum
 
 from app.core.config import settings
 from app.api.endpoints import monitor
@@ -38,6 +39,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(monitor.router, prefix=settings.API_V1_STR)
+
+# Lambda handler
+handler = Mangum(app)
 
 
 @app.get("/health")
