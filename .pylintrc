@@ -2,7 +2,11 @@
 ignore=alembic/versions/*.py
 
 [MESSAGES CONTROL]
-disable=C0103,C0111
+disable=C0103,C0111,E0611
 
 [FORMAT]
 max-line-length=100
+
+[TYPECHECK]
+ignored-modules=alembic
+ignored-classes=alembic.op,alembic.context
