@@ -23,7 +23,7 @@ from app.schemas.monitor import (
     MonitorStatusResponse,
 )
 
-router = APIRouter(prefix="/monitors", tags=["monitors"])
+router = APIRouter(prefix="/monitor", tags=["monitor"])
 
 logger = logging.getLogger(__name__)
 

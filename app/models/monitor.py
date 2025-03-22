@@ -26,7 +26,7 @@ class MonitorState(str, enum.Enum):
 monitor_tags = Table(
     "monitor_tags",
     Base.metadata,
-    Column("monitor_id", Integer, ForeignKey("monitors.id")),
+    Column("monitor_id", Integer, ForeignKey("monitor.id")),
     Column("tag_id", Integer, ForeignKey("tags.id")),
 )
 
@@ -42,7 +42,7 @@ class Monitor(Base):
         tags: Relationship to monitor tags
     """
 
-    __tablename__ = "monitors"
+    __tablename__ = "monitor"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
@@ -65,7 +65,7 @@ class MonitorStatus(Base):
     __tablename__ = "monitor_statuses"
 
     id = Column(Integer, primary_key=True, index=True)
-    monitor_id = Column(Integer, ForeignKey("monitors.id"))
+    monitor_id = Column(Integer, ForeignKey("monitor.id"))
     state = Column(Enum(MonitorState))
     timestamp = Column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
