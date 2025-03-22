@@ -10,6 +10,7 @@ from typing import Sequence, Union
 
 # pylint: disable=unused-import
 import sqlalchemy as sa  # Required by alembic
+
 # pylint: disable=no-member
 from alembic import op
 
@@ -23,8 +24,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade the database schema from monitors to monitor.
-    
-    This migration renames the monitors table to monitor and updates all foreign keys 
+
+    This migration renames the monitors table to monitor and updates all foreign keys
     referencing the table.
     """
     # Rename tables
@@ -51,7 +52,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade the database schema from monitor back to monitors.
-    
+
     This migration reverts the table rename and foreign key changes.
     """
     # Revert foreign keys
