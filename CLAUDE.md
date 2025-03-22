@@ -1,4 +1,4 @@
-# CLAUDE.md - Monitors API Guidelines
+# CLAUDE.md - Monitor API Guidelines
 
 ## Build/Lint/Test Commands
 

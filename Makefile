@@ -1,7 +1,7 @@
 .PHONY: setup test run clean lint format
 
 # Python virtual environment
-VENV = monitors
+VENV = monitor
 PYTHON = $(VENV)/bin/python
 PIP = $(VENV)/bin/pip
 

@@ -1,12 +1,12 @@
 """
-Setup configuration for the monitors package.
+Setup configuration for the monitor package.
 """
 
 # pylint: disable=import-error
 from setuptools import setup, find_packages
 
 setup(
-    name="monitors",
+    name="monitor",
     version="0.1.0",
     packages=find_packages(),
     install_requires=[

@@ -1,18 +1,18 @@
 ```
-##     ##  #######  ##    ## #### ########  #######  ########   ######  
-###   ### ##     ## ###   ##  ##     ##    ##     ## ##     ## ##    ## 
-#### #### ##     ## ####  ##  ##     ##    ##     ## ##     ## ##       
-## ### ## ##     ## ## ## ##  ##     ##    ##     ## ########   ######  
-##     ## ##     ## ##  ####  ##     ##    ##     ## ##   ##         ## 
-##     ## ##     ## ##   ###  ##     ##    ##     ## ##    ##  ##    ## 
-##     ##  #######  ##    ## ####    ##     #######  ##     ##  ######  
+##     ##  #######  ##    ## #### ########  #######  ######## 
+###   ### ##     ## ###   ##  ##     ##    ##     ## ##     ##
+#### #### ##     ## ####  ##  ##     ##    ##     ## ##     ##
+## ### ## ##     ## ## ## ##  ##     ##    ##     ## ########  
+##     ## ##     ## ##  ####  ##     ##    ##     ## ##   ##  
+##     ## ##     ## ##   ###  ##     ##    ##     ## ##    ## 
+##     ##  #######  ##    ## ####    ##     #######  ##     ## 
 ```
 
 "What is the status of ____ ?"
 
-Monitors is a simple service that lets you get and set the status of arbitrary things. Not a system of record but a tool to reduce notification fatigue.
+Monitor is a simple service that lets you get and set the status of arbitrary things. Not a system of record but a tool to reduce notification fatigue.
 
-The simplest way to use this is to have some system send an outbound webhook to Monitors to update monitor status then dipslay the status as a PNG badge somewhere.
+The simplest way to use this is to have some system send an outbound webhook to Monitor to update monitor status then dipslay the status as a PNG badge somewhere.
 
 # Dependencies
 
@@ -21,8 +21,8 @@ The simplest way to use this is to have some system send an outbound webhook to 
 
 # Setup
 
-1. `pipx run virtualenv monitors`
-1. `source ./monitors/bin/activate`
+1. `pipx run virtualenv monitor`
+1. `source ./monitor/bin/activate`
 1. `pip install -r requirements.txt`
 1. `pip install -e .`
 1. Create a PostgreSQL database at Supabase or similar
@@ -52,7 +52,7 @@ or run `make setup`
 
 ```
 curl -X 'POST' \
-  'http://localhost:8000/api/v1/monitors/' \
+  'http://localhost:8000/api/v1/monitor/' \
   -H 'Content-Type: application/json' \
   -d '{
   "name": "test-monitor",
@@ -64,7 +64,7 @@ curl -X 'POST' \
 
 ```
 curl -X 'POST' \
-  'http://localhost:8000/api/v1/monitors/1/state/' \
+  'http://localhost:8000/api/v1/monitor/1/state/' \
   -H 'Content-Type: application/json' \
   -d '{
   "state": "Normal"
@@ -75,7 +75,7 @@ curl -X 'POST' \
 
 ```
 curl -X 'GET' \
-  'http://localhost:8000/api/v1/monitors/statuses/' \
+  'http://localhost:8000/api/v1/monitor/statuses/' \
   -H 'accept: application/json'
 ```
 

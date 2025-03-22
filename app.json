@@ -1,7 +1,7 @@
 {
-  "name": "Monitors API",
+  "name": "Monitor API",
   "description": "A FastAPI monitoring system with PostgreSQL backend",
-  "repository": "https://github.com/gotoplanb/monitors",
+  "repository": "https://github.com/gotoplanb/monitor-api",
   "keywords": ["python", "fastapi", "monitoring", "postgresql"],
   "addons": ["heroku-postgresql:essential-0"],
   "env": {
