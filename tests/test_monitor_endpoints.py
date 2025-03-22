@@ -11,7 +11,7 @@ def test_create_monitor(client: TestClient):
         "/api/v1/monitor/",
         json={"name": "test-monitor", "tags": ["test", "production"]},
     )
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Failed with response: {response.text}"
     data = response.json()
     assert data["name"] == "test-monitor"
     assert "test" in data["tags"]

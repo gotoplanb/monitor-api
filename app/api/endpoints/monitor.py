@@ -206,13 +206,14 @@ def get_monitors_by_tags(tags: List[str] = Query(None), db: Session = Depends(ge
         return []
 
     # Subquery to find monitors that have all specified tags
+    tag_count = len(tags)
     monitors_with_all_tags = (
         db.query(Monitor.id)
         .join(monitor_tags)
         .join(Tag)
         .filter(Tag.name.in_(tags))
         .group_by(Monitor.id)
-        .having(func.count(Tag.id) == len(tags))
+        .having(func.count(Tag.id) == tag_count)  # pylint: disable=not-callable
     )
 
     # Main query to get monitor details

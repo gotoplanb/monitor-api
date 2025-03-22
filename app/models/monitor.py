@@ -31,7 +31,7 @@ monitor_tags = Table(
 )
 
 
-class Monitor(Base):
+class Monitor(Base):  # pylint: disable=too-few-public-methods
     """
     Monitor model representing a system or service being monitored.
 
@@ -50,7 +50,7 @@ class Monitor(Base):
     tags = relationship("Tag", secondary=monitor_tags, back_populates="monitors")
 
 
-class MonitorStatus(Base):
+class MonitorStatus(Base):  # pylint: disable=too-few-public-methods
     """
     Monitor status model representing the state of a monitor at a point in time.
 
@@ -74,7 +74,7 @@ class MonitorStatus(Base):
     monitor = relationship("Monitor", back_populates="statuses")
 
 
-class Tag(Base):
+class Tag(Base):  # pylint: disable=too-few-public-methods
     """
     Tag model for categorizing monitors.
 

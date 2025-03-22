@@ -9,6 +9,7 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+# pylint: disable=no-member
 from alembic import context
 
 from app.core.config import settings

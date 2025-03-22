@@ -8,9 +8,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
-from app.database import Base
+# Import Base first to avoid circular import
+from app.models.base import Base
 from app.api.dependencies import get_db
+from app.main import app
 
 # Create in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite://"
@@ -55,6 +56,6 @@ def fixture_client(db_session):
 def fixture_sample_monitor(client):
     """Create a sample monitor for testing."""
     response = client.post(
-        "/api/v1/monitors/", json={"name": "test-monitor", "tags": ["test"]}
+        "/api/v1/monitor/", json={"name": "test-monitor", "tags": ["test"]}
     )
     return response.json()

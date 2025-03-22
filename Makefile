@@ -22,7 +22,7 @@ lint: setup
 	$(PYTHON) -m pylint $$(git ls-files '*.py')
 
 test: setup
-	$(PYTHON) -m pytest tests/ -v
+	TESTING=true $(PYTHON) -m pytest tests/ -v
 
 run: setup
 	$(PYTHON) -m uvicorn $(APP) --reload --port $(PORT)

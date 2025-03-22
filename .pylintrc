@@ -1,2 +1,8 @@
+[MASTER]
+ignore=alembic/versions/*.py
+
 [MESSAGES CONTROL]
-disable=R0903,E1102,E0611
+disable=C0103,C0111
+
+[FORMAT]
+max-line-length=100

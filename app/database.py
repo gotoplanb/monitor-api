@@ -5,6 +5,7 @@ This module handles database connection and session management.
 """
 
 import logging
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,14 +15,23 @@ from app.models.base import Base
 
 logger = logging.getLogger(__name__)
 
-try:
-    # Configure PostgreSQL engine
-    db_url = settings.DATABASE_URL
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
+# Check if we're running in test mode
+TESTING = os.environ.get("TESTING", "").lower() == "true"
 
-    logger.info("Connecting to PostgreSQL database")
-    engine = create_engine(db_url, pool_size=5, max_overflow=10)
+try:
+    if TESTING:
+        # Use in-memory SQLite for testing
+        logger.info("Using in-memory SQLite database for testing")
+        DB_URL = "sqlite:///:memory:"
+        engine = create_engine(DB_URL, connect_args={"check_same_thread": False})
+    else:
+        # Configure PostgreSQL engine for production
+        DB_URL = settings.DATABASE_URL
+        if DB_URL.startswith("postgres://"):
+            DB_URL = DB_URL.replace("postgres://", "postgresql://", 1)
+
+        logger.info("Connecting to PostgreSQL database")
+        engine = create_engine(DB_URL, pool_size=5, max_overflow=10)
 
     # Create SessionLocal class
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -46,5 +56,7 @@ def init_db() -> None:
         raise
 
 
-# Initialize the database
-init_db()
+# Initialize the database if not testing
+# For tests, we'll initialize in the fixtures
+if not TESTING:
+    init_db()
