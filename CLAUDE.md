@@ -16,6 +16,13 @@
 - Classes: PascalCase, functions/variables: snake_case, constants: UPPERCASE
 - Import order: stdlib, third-party, local
 
+## Commit Guidelines
+
+- ALWAYS run `make format` then `make lint` before committing
+- Fix any formatting or linting issues before pushing
+- Write clear, descriptive commit messages
+- Keep commits focused and atomic
+
 ## Error Handling
 
 - Return appropriate HTTP status codes with error messages
