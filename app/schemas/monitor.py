@@ -24,6 +24,8 @@ class MonitorBase(BaseModel):
 class MonitorCreate(MonitorBase):
     """Schema for creating a Monitor."""
 
+    id: int | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 

@@ -11,3 +11,4 @@ black>=25.1.0
 pytest>=7.0.0
 httpx>=0.24.0  # Required for FastAPI TestClient
 mangum>=0.17.0
+alembic>=1.13.0  # For database migrations

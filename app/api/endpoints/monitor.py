@@ -60,7 +60,18 @@ def create_monitor(monitor: MonitorCreate, db: Session = Depends(get_db)):
     db.add(new_monitor)
     db.commit()
     db.refresh(new_monitor)
-    return monitor
+
+    # Create initial status
+    initial_status = MonitorStatus(monitor_id=new_monitor.id, state=MonitorState.NORMAL)
+    db.add(initial_status)
+    db.commit()
+
+    # Return the created monitor with its ID
+    return MonitorCreate(
+        id=new_monitor.id,
+        name=new_monitor.name,
+        tags=[tag.name for tag in new_monitor.tags],
+    )
 
 
 @router.post("/{monitor_id}/state/")
@@ -332,3 +343,32 @@ def get_monitor_history(
         )
         for status in statuses
     ]
+
+
+@router.delete("/{monitor_id}/")
+def delete_monitor(monitor_id: int, db: Session = Depends(get_db)):
+    """
+    Delete a monitor and all its associated data.
+
+    Args:
+        monitor_id: ID of the monitor to delete
+        db: Database session
+
+    Returns:
+        dict: Success message
+
+    Raises:
+        HTTPException: If monitor not found
+    """
+    monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
+    if not monitor:
+        raise HTTPException(status_code=404, detail="Monitor not found")
+
+    # Delete associated statuses first
+    db.query(MonitorStatus).filter(MonitorStatus.monitor_id == monitor_id).delete()
+
+    # Delete the monitor (this will also handle the monitor_tags associations)
+    db.delete(monitor)
+    db.commit()
+
+    return {"message": "Monitor deleted successfully"}
