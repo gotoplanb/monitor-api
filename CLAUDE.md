@@ -18,7 +18,7 @@
 
 ## Commit Guidelines
 
-- ALWAYS run `make format` then `make lint` before committing
+- ALWAYS run `make format` then `make lint` then then `make test` before committing
 - Fix any formatting or linting issues before pushing
 - Write clear, descriptive commit messages
 - Keep commits focused and atomic
