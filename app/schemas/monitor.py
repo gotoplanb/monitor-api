@@ -40,6 +40,7 @@ class MonitorStatusUpdate(BaseModel):
 class MonitorStatusResponse(BaseModel):
     """Schema for Monitor status response."""
 
+    id: int
     name: str
     state: MonitorState
     timestamp: datetime

@@ -83,15 +83,19 @@ def test_get_all_monitor_states_empty(client: TestClient):
 def test_get_all_monitor_states(client: TestClient):
     """Test getting all monitor states."""
     # Create a monitor
-    client.post("/api/v1/monitor/", json={"name": "test-monitor", "tags": ["test"]})
+    response = client.post(
+        "/api/v1/monitor/", json={"name": "test-monitor", "tags": ["test"]}
+    )
+    monitor_id = response.json()["id"]
 
     # Set states for the monitor
-    client.post("/api/v1/monitor/1/state/", json={"state": "Normal"})
+    client.post(f"/api/v1/monitor/{monitor_id}/state/", json={"state": "Normal"})
 
     response = client.get("/api/v1/monitor/statuses/")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
+    assert data[0]["id"] == monitor_id
     assert data[0]["name"] == "test-monitor"
     assert data[0]["state"] == "Normal"
     assert "timestamp" in data[0]

@@ -132,6 +132,7 @@ def get_monitor_state(monitor_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="No state found for this monitor")
 
     return MonitorStatusResponse(
+        id=monitor_id,
         name=monitor.name,
         state=latest_status.state,
         timestamp=latest_status.timestamp,
@@ -188,7 +189,11 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
 
             result.append(
                 MonitorStatusResponse(
-                    name=name, state=state, timestamp=timestamp, tags=tags
+                    id=monitor_id,
+                    name=name,
+                    state=state,
+                    timestamp=timestamp,
+                    tags=tags,
                 )
             )
 
@@ -245,7 +250,11 @@ def get_monitors_by_tags(tags: List[str] = Query(None), db: Session = Depends(ge
 
         result.append(
             MonitorStatusResponse(
-                name=name, state=state, timestamp=timestamp, tags=tags
+                id=monitor_id,
+                name=name,
+                state=state,
+                timestamp=timestamp,
+                tags=tags,
             )
         )
 
@@ -336,6 +345,7 @@ def get_monitor_history(
 
     return [
         MonitorStatusResponse(
+            id=monitor_id,
             name=monitor.name,
             state=status.state,
             timestamp=status.timestamp,
