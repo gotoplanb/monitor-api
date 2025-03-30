@@ -36,9 +36,32 @@ def test_set_monitor_state(client: TestClient):
     # First create a monitor
     client.post("/api/v1/monitor/", json={"name": "test-monitor", "tags": ["test"]})
 
-    response = client.post("/api/v1/monitor/1/state/", json={"state": "Normal"})
+    # Test setting state with message
+    response = client.post(
+        "/api/v1/monitor/1/state/",
+        json={"state": "Normal", "message": "All systems operational"},
+    )
     assert response.status_code == 200
     assert response.json()["message"] == "State updated successfully"
+
+    # Verify the state was updated with message
+    response = client.get("/api/v1/monitor/1/state/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["state"] == "Normal"
+    assert data["message"] == "All systems operational"
+
+    # Test setting state without message
+    response = client.post("/api/v1/monitor/1/state/", json={"state": "Warning"})
+    assert response.status_code == 200
+    assert response.json()["message"] == "State updated successfully"
+
+    # Verify the state was updated without message
+    response = client.get("/api/v1/monitor/1/state/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["state"] == "Warning"
+    assert data["message"] is None
 
 
 def test_set_monitor_state_invalid_monitor(client: TestClient):
@@ -53,8 +76,11 @@ def test_get_monitor_state(client: TestClient):
     # First create a monitor
     client.post("/api/v1/monitor/", json={"name": "test-monitor", "tags": ["test"]})
 
-    # Set a state
-    client.post("/api/v1/monitor/1/state/", json={"state": "Normal"})
+    # Set a state with message
+    client.post(
+        "/api/v1/monitor/1/state/",
+        json={"state": "Normal", "message": "All systems operational"},
+    )
 
     # Then get the state
     response = client.get("/api/v1/monitor/1/state/")
@@ -62,6 +88,7 @@ def test_get_monitor_state(client: TestClient):
     data = response.json()
     assert data["name"] == "test-monitor"
     assert data["state"] == "Normal"
+    assert data["message"] == "All systems operational"
     assert "timestamp" in data
     assert "tags" in data
 
@@ -88,8 +115,11 @@ def test_get_all_monitor_states(client: TestClient):
     )
     monitor_id = response.json()["id"]
 
-    # Set states for the monitor
-    client.post(f"/api/v1/monitor/{monitor_id}/state/", json={"state": "Normal"})
+    # Set states for the monitor with message
+    client.post(
+        f"/api/v1/monitor/{monitor_id}/state/",
+        json={"state": "Normal", "message": "All systems operational"},
+    )
 
     response = client.get("/api/v1/monitor/statuses/")
     assert response.status_code == 200
@@ -98,6 +128,7 @@ def test_get_all_monitor_states(client: TestClient):
     assert data[0]["id"] == monitor_id
     assert data[0]["name"] == "test-monitor"
     assert data[0]["state"] == "Normal"
+    assert data[0]["message"] == "All systems operational"
     assert "timestamp" in data[0]
     assert "tags" in data[0]
 
@@ -129,9 +160,19 @@ def test_get_monitors_by_tags(client: TestClient):
     client.post("/api/v1/monitor/", json={"name": "monitor2", "tags": ["prod", "db"]})
     client.post("/api/v1/monitor/", json={"name": "monitor3", "tags": ["dev", "web"]})
 
-    # Set states
-    for i in range(1, 4):
-        client.post(f"/api/v1/monitor/{i}/state/", json={"state": "Normal"})
+    # Set states with messages
+    client.post(
+        "/api/v1/monitor/1/state/",
+        json={"state": "Normal", "message": "Web service operational"},
+    )
+    client.post(
+        "/api/v1/monitor/2/state/",
+        json={"state": "Warning", "message": "Database connection slow"},
+    )
+    client.post(
+        "/api/v1/monitor/3/state/",
+        json={"state": "Normal", "message": "Dev environment stable"},
+    )
 
     # Test filtering by single tag
     response = client.get("/api/v1/monitor/statuses/by-tags/?tags=prod")
@@ -142,6 +183,11 @@ def test_get_monitors_by_tags(client: TestClient):
     assert monitor_names == {"monitor1", "monitor2"}
     for monitor in data:
         assert "prod" in monitor["tags"]
+        assert "message" in monitor
+        if monitor["name"] == "monitor1":
+            assert monitor["message"] == "Web service operational"
+        else:
+            assert monitor["message"] == "Database connection slow"
 
     # Test filtering by multiple tags
     response = client.get("/api/v1/monitor/statuses/by-tags/?tags=prod&tags=web")
@@ -150,6 +196,7 @@ def test_get_monitors_by_tags(client: TestClient):
     assert len(data) == 1
     assert data[0]["name"] == "monitor1"
     assert all(tag in data[0]["tags"] for tag in ["prod", "web"])
+    assert data[0]["message"] == "Web service operational"
 
 
 def test_delete_monitor(client: TestClient):
@@ -189,10 +236,17 @@ def test_delete_monitor_cascades_to_statuses(client: TestClient):
     )
     monitor_id = response.json()["id"]
 
-    # Set multiple states
-    states = ["Normal", "Warning", "Critical"]
-    for state in states:
-        client.post(f"/api/v1/monitor/{monitor_id}/state/", json={"state": state})
+    # Set multiple states with messages
+    states = [
+        ("Normal", "Initial state"),
+        ("Warning", "High CPU usage detected"),
+        ("Critical", "Service unavailable"),
+    ]
+    for state, message in states:
+        client.post(
+            f"/api/v1/monitor/{monitor_id}/state/",
+            json={"state": state, "message": message},
+        )
 
     # Delete the monitor
     client.delete(f"/api/v1/monitor/{monitor_id}/")
@@ -216,19 +270,26 @@ def test_delete_monitor_preserves_other_monitors(client: TestClient):
     monitor1_id = response1.json()["id"]
     monitor2_id = response2.json()["id"]
 
-    # Set states for both
-    client.post(f"/api/v1/monitor/{monitor1_id}/state/", json={"state": "Normal"})
-    client.post(f"/api/v1/monitor/{monitor2_id}/state/", json={"state": "Warning"})
+    # Set states for both with messages
+    client.post(
+        f"/api/v1/monitor/{monitor1_id}/state/",
+        json={"state": "Normal", "message": "First monitor operational"},
+    )
+    client.post(
+        f"/api/v1/monitor/{monitor2_id}/state/",
+        json={"state": "Warning", "message": "Second monitor warning"},
+    )
 
     # Delete first monitor
     client.delete(f"/api/v1/monitor/{monitor1_id}/")
 
-    # Verify second monitor still exists
+    # Verify second monitor still exists with its message
     response = client.get(f"/api/v1/monitor/{monitor2_id}/state/")
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == "monitor2"
     assert data["state"] == "Warning"
+    assert data["message"] == "Second monitor warning"
 
 
 def test_monitor_history_pagination(client: TestClient):
@@ -239,10 +300,19 @@ def test_monitor_history_pagination(client: TestClient):
     )
     monitor_id = response.json()["id"]
 
-    # Set multiple states
-    states = ["Normal", "Warning", "Critical", "Normal", "Warning"]
-    for state in states:
-        client.post(f"/api/v1/monitor/{monitor_id}/state/", json={"state": state})
+    # Set multiple states with messages
+    states = [
+        ("Normal", "All systems operational"),
+        ("Warning", "High CPU usage"),
+        ("Critical", "Service down"),
+        ("Normal", "Service restored"),
+        ("Warning", "High memory usage"),
+    ]
+    for state, message in states:
+        client.post(
+            f"/api/v1/monitor/{monitor_id}/state/",
+            json={"state": state, "message": message},
+        )
 
     # Test with default pagination (limit=10)
     response = client.get(f"/api/v1/monitor/{monitor_id}/history/")
@@ -251,14 +321,20 @@ def test_monitor_history_pagination(client: TestClient):
     assert (
         len(data) == 6
     )  # All states should be returned (5 from test + 1 initial state)
+    assert data[0]["state"] == "Warning"
+    assert data[0]["message"] == "High memory usage"
+    assert data[1]["state"] == "Normal"
+    assert data[1]["message"] == "Service restored"
 
     # Test with custom limit
     response = client.get(f"/api/v1/monitor/{monitor_id}/history/?limit=2")
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 2
-    assert data[0]["state"] == "Warning"  # Most recent state
+    assert data[0]["state"] == "Warning"
+    assert data[0]["message"] == "High memory usage"
     assert data[1]["state"] == "Normal"
+    assert data[1]["message"] == "Service restored"
 
     # Test with skip
     response = client.get(f"/api/v1/monitor/{monitor_id}/history/?skip=2&limit=2")
@@ -266,7 +342,9 @@ def test_monitor_history_pagination(client: TestClient):
     data = response.json()
     assert len(data) == 2
     assert data[0]["state"] == "Critical"
+    assert data[0]["message"] == "Service down"
     assert data[1]["state"] == "Warning"
+    assert data[1]["message"] == "High CPU usage"
 
 
 def test_monitor_history_invalid_pagination(client: TestClient):
@@ -288,3 +366,55 @@ def test_monitor_history_invalid_pagination(client: TestClient):
     # Test limit too high
     response = client.get(f"/api/v1/monitor/{monitor_id}/history/?limit=101")
     assert response.status_code == 422  # Validation error
+
+
+def test_monitor_history_with_messages(client: TestClient):
+    """Test monitor history with messages."""
+    # Create a monitor
+    response = client.post(
+        "/api/v1/monitor/", json={"name": "history-monitor", "tags": ["test"]}
+    )
+    monitor_id = response.json()["id"]
+
+    # Set multiple states with messages
+    states = [
+        ("Normal", "Initial state"),
+        ("Warning", "High CPU usage detected"),
+        ("Critical", "Service unavailable"),
+        ("Normal", "Service restored"),
+        ("Warning", "High memory usage"),
+    ]
+    for state, message in states:
+        client.post(
+            f"/api/v1/monitor/{monitor_id}/state/",
+            json={"state": state, "message": message},
+        )
+
+    # Test getting full history
+    response = client.get(f"/api/v1/monitor/{monitor_id}/history/")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 6  # All states (5 from test + 1 initial state)
+
+    # Verify messages in chronological order (newest first)
+    assert data[0]["state"] == "Warning"
+    assert data[0]["message"] == "High memory usage"
+    assert data[1]["state"] == "Normal"
+    assert data[1]["message"] == "Service restored"
+    assert data[2]["state"] == "Critical"
+    assert data[2]["message"] == "Service unavailable"
+    assert data[3]["state"] == "Warning"
+    assert data[3]["message"] == "High CPU usage detected"
+    assert data[4]["state"] == "Normal"
+    assert data[4]["message"] == "Initial state"
+    assert data[5]["message"] is None  # Initial state created by create_monitor
+
+    # Test pagination with messages
+    response = client.get(f"/api/v1/monitor/{monitor_id}/history/?skip=1&limit=2")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["state"] == "Normal"
+    assert data[0]["message"] == "Service restored"
+    assert data[1]["state"] == "Critical"
+    assert data[1]["message"] == "Service unavailable"

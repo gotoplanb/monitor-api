@@ -96,7 +96,9 @@ def set_monitor_state(
     if not monitor:
         raise HTTPException(status_code=404, detail="Monitor not found")
 
-    new_status = MonitorStatus(monitor_id=monitor.id, state=status.state)
+    new_status = MonitorStatus(
+        monitor_id=monitor.id, state=status.state, message=status.message
+    )
     db.add(new_status)
     db.commit()
     return {"message": "State updated successfully"}
@@ -135,6 +137,7 @@ def get_monitor_state(monitor_id: int, db: Session = Depends(get_db)):
         id=monitor_id,
         name=monitor.name,
         state=latest_status.state,
+        message=latest_status.message,
         timestamp=latest_status.timestamp,
         tags=[tag.name for tag in monitor.tags],
     )
@@ -165,7 +168,11 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
         # Main query joining with the subquery
         latest_states = (
             db.query(
-                Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp
+                Monitor.id,
+                Monitor.name,
+                MonitorStatus.state,
+                MonitorStatus.message,
+                MonitorStatus.timestamp,
             )
             .join(MonitorStatus)
             .join(
@@ -183,7 +190,7 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
             return []
 
         result = []
-        for monitor_id, name, state, timestamp in latest_states:
+        for monitor_id, name, state, message, timestamp in latest_states:
             monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
             tags = [tag.name for tag in monitor.tags] if monitor else []
 
@@ -192,6 +199,7 @@ def get_all_monitor_states(db: Session = Depends(get_db)):
                     id=monitor_id,
                     name=name,
                     state=state,
+                    message=message,
                     timestamp=timestamp,
                     tags=tags,
                 )
@@ -232,19 +240,41 @@ def get_monitors_by_tags(tags: List[str] = Query(None), db: Session = Depends(ge
         .having(func.count(Tag.id) == tag_count)  # pylint: disable=not-callable
     )
 
-    # Main query to get monitor details
+    # Subquery to get the latest status for each monitor
+    latest_status = (
+        db.query(
+            MonitorStatus.monitor_id,
+            func.max(MonitorStatus.timestamp).label("max_timestamp"),
+        )
+        .group_by(MonitorStatus.monitor_id)
+        .subquery()
+    )
+
+    # Main query to get monitor details with latest status
     query = (
-        db.query(Monitor.id, Monitor.name, MonitorStatus.state, MonitorStatus.timestamp)
+        db.query(
+            Monitor.id,
+            Monitor.name,
+            MonitorStatus.state,
+            MonitorStatus.message,
+            MonitorStatus.timestamp,
+        )
         .join(MonitorStatus)
+        .join(
+            latest_status,
+            and_(
+                Monitor.id == latest_status.c.monitor_id,
+                MonitorStatus.timestamp == latest_status.c.max_timestamp,
+            ),
+        )
         .filter(Monitor.id.in_(monitors_with_all_tags))
-        .group_by(Monitor.id)
         .order_by(desc(MonitorStatus.timestamp))
     )
 
     monitors = query.all()
     result = []
 
-    for monitor_id, name, state, timestamp in monitors:
+    for monitor_id, name, state, message, timestamp in monitors:
         monitor = db.query(Monitor).filter(Monitor.id == monitor_id).first()
         tags = [tag.name for tag in monitor.tags] if monitor else []
 
@@ -253,6 +283,7 @@ def get_monitors_by_tags(tags: List[str] = Query(None), db: Session = Depends(ge
                 id=monitor_id,
                 name=name,
                 state=state,
+                message=message,
                 timestamp=timestamp,
                 tags=tags,
             )
@@ -348,6 +379,7 @@ def get_monitor_history(
             id=monitor_id,
             name=monitor.name,
             state=status.state,
+            message=status.message,
             timestamp=status.timestamp,
             tags=[tag.name for tag in monitor.tags],
         )

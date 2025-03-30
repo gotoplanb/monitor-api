@@ -33,6 +33,7 @@ class MonitorStatusUpdate(BaseModel):
     """Schema for updating Monitor status."""
 
     state: MonitorState
+    message: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -43,6 +44,7 @@ class MonitorStatusResponse(BaseModel):
     id: int
     name: str
     state: MonitorState
+    message: str | None = None
     timestamp: datetime
     tags: List[str] = []
 

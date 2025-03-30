@@ -1,4 +1,4 @@
-.PHONY: setup test run clean lint format
+.PHONY: setup test run clean lint format ci
 
 # Python virtual environment
 VENV = monitor
@@ -26,6 +26,8 @@ test: setup
 
 run: setup
 	$(PYTHON) -m uvicorn $(APP) --reload --port $(PORT)
+
+ci: setup format lint test
 
 clean:
 	rm -rf $(VENV)

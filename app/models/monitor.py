@@ -58,6 +58,7 @@ class MonitorStatus(Base):  # pylint: disable=too-few-public-methods
         id: Unique identifier
         monitor_id: Reference to the monitor
         state: Current state of the monitor
+        message: Additional message for the monitor status
         timestamp: When this state was recorded
         monitor: Relationship to the parent monitor
     """
@@ -67,6 +68,7 @@ class MonitorStatus(Base):  # pylint: disable=too-few-public-methods
     id = Column(Integer, primary_key=True, index=True)
     monitor_id = Column(Integer, ForeignKey("monitor.id"))
     state = Column(Enum(MonitorState))
+    message = Column(String, nullable=True)
     timestamp = Column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC), nullable=False
     )
