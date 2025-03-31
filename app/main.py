@@ -11,6 +11,7 @@ from mangum import Mangum
 from app.core.config import settings
 from app.api.endpoints import monitor
 from app.database import init_db
+from app.telemetry import init_telemetry, instrument_app
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +28,12 @@ except SQLAlchemyError as e:
 app = FastAPI(
     title=settings.PROJECT_NAME, openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+# Initialize OpenTelemetry
+tracer_provider = init_telemetry(service_name=settings.PROJECT_NAME)
+
+# Instrument FastAPI with OpenTelemetry
+instrument_app(app, tracer_provider)
 
 # Add CORS middleware
 app.add_middleware(
