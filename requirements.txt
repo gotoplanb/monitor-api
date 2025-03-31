@@ -12,3 +12,7 @@ pytest>=7.0.0
 httpx>=0.24.0  # Required for FastAPI TestClient
 mangum>=0.17.0
 alembic>=1.13.0  # For database migrations
+opentelemetry-api>=1.31.1
+opentelemetry-sdk>=1.31.1
+opentelemetry-exporter-otlp>=1.31.1
+opentelemetry-instrumentation-fastapi>=0.52b1
