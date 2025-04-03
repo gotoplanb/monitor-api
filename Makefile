@@ -1,4 +1,4 @@
-.PHONY: setup test run clean lint format ci
+.PHONY: setup test run clean lint format ci coverage
 
 # Python virtual environment
 VENV = monitor
@@ -23,12 +23,14 @@ lint: setup
 
 test: setup
 	TESTING=true $(PYTHON) -m pytest tests/ -v
-	TESTING=true $(PYTHON) -m pytest --cov=app tests/ 
+
+coverage: setup
+	TESTING=true $(PYTHON) -m pytest --cov=app tests/
 
 run: setup
 	$(PYTHON) -m uvicorn $(APP) --reload --port $(PORT)
 
-ci: setup format lint test
+ci: setup format lint test coverage
 
 clean:
 	rm -rf $(VENV)
