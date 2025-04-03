@@ -2,13 +2,13 @@
 Tests for FastAPI dependencies.
 """
 
-import pytest
 from fastapi import FastAPI, Depends
 from fastapi.testclient import TestClient
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from app.api.dependencies import get_db
 from app.main import app
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 
 
 # Create a test app
@@ -17,8 +17,10 @@ client = TestClient(app)
 
 
 @app.get("/test-db")
-async def test_db_route(db: Session = Depends(get_db)):
+async def db_test_route(db: Session = Depends(get_db)):
     """Test route for database dependency."""
+    # Verify that we got a valid database session
+    assert isinstance(db, Session)
     return {"db_active": True}
 
 
@@ -30,8 +32,8 @@ def test_get_db_dependency():
     db.close()
 
 
-def test_db_route_response():
-    """Test that the database route returns correct session state."""
+def test_db_route():
+    """Test that the database route receives a valid session and returns correct response."""
     response = client.get("/test-db")
     assert response.status_code == 200
     assert response.json() == {"db_active": True}
@@ -47,5 +49,5 @@ def test_db_dependency_closes_session():
     try:
         db.execute(text("SELECT 1"))
         assert False, "Session should be closed"
-    except Exception:
-        assert True
+    except Exception as exc:  # pylint: disable=broad-except
+        assert str(exc) != "", "Exception should have a message"
