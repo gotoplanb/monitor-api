@@ -23,6 +23,7 @@ lint: setup
 
 test: setup
 	TESTING=true $(PYTHON) -m pytest tests/ -v
+	TESTING=true $(PYTHON) -m pytest --cov=app tests/ 
 
 run: setup
 	$(PYTHON) -m uvicorn $(APP) --reload --port $(PORT)
